@@ -65,13 +65,25 @@ typedef unsigned char  u8;
 #define X_STR_PIN PINB
 #define X_STR_DDR DDRB
 
-// green
-#define LED1_ON   PORTD &=~0x04
-#define LED1_OFF  PORTD |= 0x04
-// red
-#define LED2_ON   PORTD &=~0x08
-#define LED2_OFF  PORTD |= 0x08
-#define LED_INIT  DDRD = 0x0C;
+#if   defined(__AVR_ATmega8__)
+	// green
+	#define LED1_ON   PORTD &=~0x04
+	#define LED1_OFF  PORTD |= 0x04
+	// red
+	#define LED2_ON   PORTD &=~0x08
+	#define LED2_OFF  PORTD |= 0x08
+	#define LED_INIT  DDRD = 0x0C;
+#elif (defined(__AVR_ATmega88__)|| defined(__AVR_ATmega168__))
+	// green
+	#define LED1_ON   PORTD |= 0x04
+	#define LED1_OFF  PORTD &=~0x04
+	// red
+	#define LED2_ON   PORTD |= 0x08
+	#define LED2_OFF  PORTD &=~0x08
+	#define LED_INIT  DDRD = 0x00;
+#else
+	#error "Unsupported microcontroller! :("
+#endif
 
 #endif
 
@@ -295,7 +307,12 @@ void write_block(long address, unsigned char *source, int len)
 void reset()
 {
 	sputs("RESET!\n");
-	WDTCR = 8;
+    	/****Enable Watchdog Timer****/
+    	#if   defined(__AVR_ATmega8__)
+		WDTCR = 8;  //ATmega8/L
+	#elif (defined(__AVR_ATmega88__)|| defined(__AVR_ATmega168__))
+		WDTCSR = 64;  //ATmega88/168/328
+	#endif
 	while (1);
 }
 
